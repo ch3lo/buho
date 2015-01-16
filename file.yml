@@ -1,0 +1,37 @@
+process:
+  lan: &lan
+    import:
+      - *proc_compra
+      - *proc_checkin
+  
+  compra: &proc_compra
+    mount:
+      - *db
+      - *cache
+  
+  checkin: &proc_checkin
+    mount:
+      - *db
+    import:
+  
+  hybrid: &proc_hybrid
+    import:
+      - *proc_compra
+      - *proc_checkin
+    mount:
+      - *db
+
+services:
+  database: &db
+    image: debian:wheezy
+    command: echo hola debian
+    parameters:
+      - "-p=80"
+      - "--net=host"
+
+  cache: &cache
+    image: centos:centos6
+    command: echo hola centos
+    parameters:
+      - "-p=8080"
+      - "--net=bridge"
