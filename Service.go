@@ -7,6 +7,7 @@ type Service struct {
 	Command    string
 	Running    bool
 	Parameters []string
+	uses       []Service
 }
 
 func (s *Service) String() string {

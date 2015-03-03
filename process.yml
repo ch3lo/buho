@@ -1,0 +1,4 @@
+lan: &lan
+ import:
+  - *proc_compra
+  - *proc_checkin

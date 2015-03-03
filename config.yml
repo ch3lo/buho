@@ -1,0 +1,49 @@
+services:
+ -
+  name: acc
+  image: latam:acc
+  command: echo hola acc
+  parameters:
+   - "-p=80"
+  uses:
+   - *dictionary
+   - *db
+   - *pcc
+
+ -
+  name: pcc
+  image: latam:pcc
+  command: echo hola pcc
+  parameters:
+   - "-p=80"
+  uses:
+   - *dictionary
+   - *db
+
+ -
+  name: dic
+  image: latam:dic
+  command: echo hola dic
+  parameters:
+   - "-p=80"
+  uses:
+   - *db
+   - *cache
+
+ -
+  name: db
+  image: debian:wheezy
+  command: echo hola debian
+  parameters:
+   - "-p=80"
+   - "--net=host"
+  uses:
+
+ -
+  name: cache
+  image: centos:centos6
+  command: echo hola centos
+  parameters:
+   - "-p=8080"
+   - "--net=bridge"
+  uses:
