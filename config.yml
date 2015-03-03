@@ -18,6 +18,10 @@ services:
   name: pcc
   image: latam:pcc
   command: echo hola pcc
+  check:
+   mode: http
+   ping: /status
+   pong: ok
   parameters:
    - "-p=80"
   uses:
@@ -28,6 +32,10 @@ services:
   name: dic
   image: latam:dic
   command: echo hola dic
+  check:
+   mode: http
+   ping: /status
+   pong: ok
   parameters:
    - "-p=80"
   uses:
@@ -38,6 +46,10 @@ services:
   name: db
   image: debian:wheezy
   command: echo hola db
+  check:
+   mode: tcp
+   ping: telnet
+   pong: ok
   parameters:
    - "-p=80"
    - "--net=host"

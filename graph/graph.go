@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"github.com/kr/pretty"
 )
 
 type Graph struct {
@@ -15,27 +16,39 @@ func NewGraph() *Graph {
 }
 
 func (g *Graph) AddNode(node *Node) {
-	fmt.Printf("Adding node %#s: %#v\n", node.Id, node)
-	g.Nodes[node.Id] = node
+	fmt.Printf("Adding node %#s - %#v - %#v\n", node.Id(), &node, pretty.Formatter(node))
+	g.Nodes[node.Id()] = node
 }
 
 func (g *Graph) GetNode(id string) *Node {
-	fmt.Printf("Getting node %#s: %#v\n", id, g.Nodes[id])
+	var node *Node
+	node = g.Nodes[id]
+	fmt.Printf("Getting node %#s - %#v - %#v\n", id, *node, node)
 	return g.Nodes[id]
 }
 
 func (g *Graph) AddEdge(from *Node, to *Node) {
-	fmt.Printf("Adding edge from %#s to %#s\n", from.Id, to.Id)
+	fmt.Printf("Adding edge from %#v to %#v\n", from.Id(), to.Id())
 	from.addNeighbor(to)
 }
 
-func (g *Graph) Print(id string) {
-	g.fPrint(g.Nodes[id])
+func (g *Graph) ReverseChildrens(id string) *[]*Node {
+	nodes := []*Node{}
+	fmt.Printf("MSR NODES ONE %v\n", &nodes)
+
+	childrens(&nodes, g.Nodes[id])
+
+	return &nodes
 }
 
-func (g *Graph) fPrint(node *Node) {
-	for _, srv := range node.Nodes {
-		g.fPrint(srv)
+func childrens(nodes *[]*Node, node *Node) {
+	for id, _ := range node.Nodes {
+		childrens(nodes, node.Nodes[id])
 	}
-	fmt.Printf("Node %#v\n", node)
+
+	fmt.Printf("MSR %#v", pretty.Formatter(node))
+	node.Change = node.Change + "?"
+
+	*nodes = append(*nodes, node)
+	fmt.Printf("MSR NODES %#v\n", nodes)
 }
