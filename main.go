@@ -3,15 +3,40 @@ package main
 import (
 	"flag"
 	"fmt"
-	//"github.com/ch3lo/buho/graph"
+	"github.com/ch3lo/buho/graph"
+	"github.com/ch3lo/buho/service"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"path/filepath"
 )
 
-func runService(index int, service *Service) {
-	fmt.Printf("Running Service %#s:\n%#v\n\n", index, service)
+func runService(index string, service *service.DockerService) {
+	fmt.Printf("Running Service %#s:\n%#v\n", index, service)
 	service.Running = true
+}
+
+func createGraph(config *Configuration) *graph.Graph {
+	g := graph.NewGraph()
+
+	for _, srv := range config.Services {
+		g.AddNode(graph.NewNode(srv.Name))
+	}
+
+	var from *graph.Node
+	var to *graph.Node
+
+	for _, srv_a := range config.Services {
+		from = g.GetNode(srv_a.Name)
+
+		for _, srv_b := range srv_a.Uses {
+			to = g.GetNode(srv_b.Name)
+			g.AddEdge(from, to)
+		}
+	}
+
+	g.Print("acc")
+
+	return g
 }
 
 func readConfiguration(configFile string) Configuration {
@@ -39,7 +64,5 @@ func main() {
 
 	config := readConfiguration(*configFile)
 
-	for id, srv := range config.Services {
-		runService(id, &srv)
-	}
+	createGraph(&config)
 }

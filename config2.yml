@@ -1,6 +1,5 @@
 services:
- - &acc
-  name: acc
+ acc: &acc
   image: latam:acc
   command: echo hola acc
   check:
@@ -14,8 +13,7 @@ services:
    - *db
    - *pcc
 
- - &pcc
-  name: pcc
+ pcc: &pcc
   image: latam:pcc
   command: echo hola pcc
   parameters:
@@ -24,8 +22,7 @@ services:
    - *dictionary
    - *db
 
- - &dictionary
-  name: dic
+ dic: &dictionary
   image: latam:dic
   command: echo hola dic
   parameters:
@@ -34,8 +31,7 @@ services:
    - *db
    - *cache
 
- - &db
-  name: db
+ db: &db
   image: debian:wheezy
   command: echo hola db
   parameters:
@@ -45,8 +41,7 @@ services:
    - *cache
    - *cache
 
- - &cache
-  name: cache
+ cache: &cache
   image: centos:centos6
   command: echo hola cache
   parameters:
