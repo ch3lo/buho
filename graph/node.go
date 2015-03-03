@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"fmt"
 	"github.com/ch3lo/buho/service"
 )
 
@@ -24,7 +23,7 @@ func (n *Node) Id() string {
 }
 
 func (n *Node) addNeighbor(nb *Node) {
-	fmt.Printf("Adding neighbor: %#s\n", nb.Id())
+	//fmt.Printf("Adding neighbor: %#s\n", nb.Id())
 	n.Nodes[nb.Id()] = nb
 }
 

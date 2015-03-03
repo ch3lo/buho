@@ -21,20 +21,16 @@ func (g *Graph) AddNode(node *Node) {
 }
 
 func (g *Graph) GetNode(id string) *Node {
-	var node *Node
-	node = g.Nodes[id]
-	fmt.Printf("Getting node %#s - %#v - %#v\n", id, *node, node)
 	return g.Nodes[id]
 }
 
 func (g *Graph) AddEdge(from *Node, to *Node) {
-	fmt.Printf("Adding edge from %#v to %#v\n", from.Id(), to.Id())
+	//fmt.Printf("Adding edge from %#v to %#v\n", from.Id(), to.Id())
 	from.addNeighbor(to)
 }
 
 func (g *Graph) ReverseChildrens(id string) *[]*Node {
 	nodes := []*Node{}
-	fmt.Printf("MSR NODES ONE %v\n", &nodes)
 
 	childrens(&nodes, g.Nodes[id])
 
@@ -46,9 +42,15 @@ func childrens(nodes *[]*Node, node *Node) {
 		childrens(nodes, node.Nodes[id])
 	}
 
-	fmt.Printf("MSR %#v", pretty.Formatter(node))
-	node.Change = node.Change + "?"
+	//fmt.Printf("MSR %#v\n", pretty.Formatter(node))
+	//node.Change = node.Change + "?"
+
+	for _, val := range *nodes {
+		if val == node {
+			return
+		}
+	}
 
 	*nodes = append(*nodes, node)
-	fmt.Printf("MSR NODES %#v\n", nodes)
+	//fmt.Printf("MSR NODES %#v\n", nodes)
 }

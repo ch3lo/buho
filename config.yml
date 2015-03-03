@@ -1,8 +1,7 @@
 services:
  - &acc
   name: acc
-  image: latam:acc
-  command: echo hola acc
+  image: nginx:latest
   check:
    mode: http
    ping: /status
@@ -16,8 +15,7 @@ services:
 
  - &pcc
   name: pcc
-  image: latam:pcc
-  command: echo hola pcc
+  image: nginx:latest
   check:
    mode: http
    ping: /status
@@ -30,8 +28,7 @@ services:
 
  - &dictionary
   name: dic
-  image: latam:dic
-  command: echo hola dic
+  image: nginx:latest
   check:
    mode: http
    ping: /status
@@ -44,8 +41,7 @@ services:
 
  - &db
   name: db
-  image: debian:wheezy
-  command: echo hola db
+  image: nginx:latest
   check:
    mode: tcp
    ping: telnet
@@ -59,8 +55,7 @@ services:
 
  - &cache
   name: cache
-  image: centos:centos6
-  command: echo hola cache
+  image: nginx:latest
   parameters:
    - "-p=8080"
    - "--net=bridge"

@@ -50,6 +50,14 @@ func readConfiguration(configFile string) Configuration {
 	return config
 }
 
+func testPointer(g *graph.Graph) {
+	fmt.Printf("DIC ID %#v %#v\n", g.Nodes["acc"].Nodes["pcc"].Nodes["dic"], pretty.Formatter(g.Nodes["acc"].Nodes["pcc"].Nodes["dic"].Change))
+	g.Nodes["acc"].Nodes["pcc"].Nodes["dic"].Change = g.Nodes["acc"].Nodes["pcc"].Nodes["dic"].Change + "?"
+	fmt.Printf("DIC ID %#v %#v\n", g.Nodes["acc"].Nodes["dic"], pretty.Formatter(g.Nodes["acc"].Nodes["dic"].Change))
+	g.Nodes["acc"].Nodes["dic"].Change = g.Nodes["acc"].Nodes["dic"].Change + "?"
+	fmt.Printf("DIC ID %#v %#v\n", g.Nodes["dic"], pretty.Formatter(g.Nodes["dic"].Change))
+}
+
 func main() {
 	configFile := flag.String("config", "./config.yml", "Process configuration file")
 
@@ -59,11 +67,19 @@ func main() {
 
 	var g *graph.Graph
 	g = createGraph(&config)
+
+	fmt.Printf("GRAPH %#v\n", pretty.Formatter(g))
+	testPointer(g)
 	fmt.Printf("GRAPH %#v\n", pretty.Formatter(g))
 
-	for key, value := range *g.ReverseChildrens("acc") {
+	var nodes *[]*graph.Node
+	nodes = g.ReverseChildrens("acc")
+
+	for key, value := range *nodes {
 		fmt.Printf("Node %#s retrieved %#v\n", key, value)
 	}
 
-	//runner()
+	fmt.Printf("GRAPH %#v\n", pretty.Formatter(nodes))
+
+	runner(nodes)
 }
