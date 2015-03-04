@@ -4,7 +4,7 @@ services:
   image: nginx:latest
   check:
    mode: http
-   ping: /status
+   ping: /status_acc
    pong: ok
   parameters:
    - "-p=80"
@@ -18,7 +18,7 @@ services:
   image: nginx:latest
   check:
    mode: http
-   ping: /status
+   ping: /status_pcc
    pong: ok
   parameters:
    - "-p=80"
@@ -31,7 +31,7 @@ services:
   image: nginx:latest
   check:
    mode: http
-   ping: /status
+   ping: /status_dic
    pong: ok
   parameters:
    - "-p=80"

@@ -52,9 +52,13 @@ func readConfiguration(configFile string) Configuration {
 
 func testPointer(g *graph.Graph) {
 	fmt.Printf("DIC ID %#v %#v\n", g.Nodes["acc"].Nodes["pcc"].Nodes["dic"], pretty.Formatter(g.Nodes["acc"].Nodes["pcc"].Nodes["dic"].Change))
+
 	g.Nodes["acc"].Nodes["pcc"].Nodes["dic"].Change = g.Nodes["acc"].Nodes["pcc"].Nodes["dic"].Change + "?"
+
 	fmt.Printf("DIC ID %#v %#v\n", g.Nodes["acc"].Nodes["dic"], pretty.Formatter(g.Nodes["acc"].Nodes["dic"].Change))
+
 	g.Nodes["acc"].Nodes["dic"].Change = g.Nodes["acc"].Nodes["dic"].Change + "?"
+
 	fmt.Printf("DIC ID %#v %#v\n", g.Nodes["dic"], pretty.Formatter(g.Nodes["dic"].Change))
 }
 
@@ -65,15 +69,18 @@ func main() {
 
 	config := readConfiguration(*configFile)
 
-	var g *graph.Graph
-	g = createGraph(&config)
+	var g *graph.Graph = createGraph(&config)
+	//var g2 *graph.Graph = createGraph(&config)
 
-	fmt.Printf("GRAPH %#v\n", pretty.Formatter(g))
-	testPointer(g)
-	fmt.Printf("GRAPH %#v\n", pretty.Formatter(g))
+	//fmt.Printf("GRAPH %#v\n", pretty.Formatter(g))
+	//fmt.Printf("GRAPH2 %#v\n", pretty.Formatter(g2))
+	//testPointer(g)
+	//fmt.Printf("GRAPH DIC ID %#v %#v\n", g.Nodes["dic"], pretty.Formatter(g.Nodes["dic"].Change))
+	//fmt.Printf("GRAPH2 DIC ID %#v %#v\n", g2.Nodes["dic"], pretty.Formatter(g2.Nodes["dic"].Change))
+	//fmt.Printf("GRAPH %#v\n", pretty.Formatter(g))
+	//fmt.Printf("GRAPH2 %#v\n", pretty.Formatter(g2))
 
-	var nodes *[]*graph.Node
-	nodes = g.ReverseChildrens("acc")
+	var nodes *[]*graph.Node = g.ReverseChildrens("acc")
 
 	for key, value := range *nodes {
 		fmt.Printf("Node %#s retrieved %#v\n", key, value)
@@ -81,5 +88,6 @@ func main() {
 
 	fmt.Printf("GRAPH %#v\n", pretty.Formatter(nodes))
 
-	runner(nodes)
+	//runner(nodes)
+	serviceRunner(g.Nodes["acc"])
 }

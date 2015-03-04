@@ -2,32 +2,38 @@ package service
 
 import (
 	"fmt"
+	"github.com/fsouza/go-dockerclient"
 )
 
 type DockerService struct {
 	Name       string
 	Image      string
 	Command    string
-	Running    bool
 	Parameters []string
 	Uses       []DockerService
 	Check      Check
 }
 
-func (s *DockerService) isRunning() bool {
-	return s.Running
+func (s *DockerService) Id() string {
+	return s.Name
+}
+
+func (s *DockerService) Checker() Check {
+	return s.Check
 }
 
 func (s *DockerService) Run() {
-	if s.isRunning() {
-		fmt.Printf("Service %#s is running with check %#s\n", s.Name, s.Check.Mode)
-		return
+	//SACAR DE ACA
+	endpoint := "unix:///var/run/docker.sock"
+	client, _ := docker.NewClient(endpoint)
+
+	config := docker.Config{Image: s.Image}
+	opts := docker.CreateContainerOptions{Name: s.Id(), Config: &config}
+	container, err := client.CreateContainer(opts)
+
+	if err != nil {
+		fmt.Println("FATAL: ", err)
 	}
 
-	fmt.Printf("Service command: docker run %#v %#s %#s\n", s.Parameters, s.Image, s.Command)
-	s.Running = true
-}
-
-func (s *DockerService) Id() string {
-	return s.Name
+	client.StartContainer(container.ID, &docker.HostConfig{PublishAllPorts: true})
 }

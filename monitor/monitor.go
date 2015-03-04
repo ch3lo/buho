@@ -1,5 +1,9 @@
 package monitor
 
 type Monitor interface {
-	Check(cs chan string)
+	Check() bool
+	SetEndpoint(ep string)
+	GetEndpoint() string
+	SetExpect(ex string)
+	GetExpect() string
 }

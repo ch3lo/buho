@@ -5,26 +5,27 @@ import (
 )
 
 type Node struct {
-	Service *service.DockerService // Change it to an interface to support another services
-	Nodes   map[string]*Node
-	Change  string
+	ServiceManager *service.ServiceManager
+	Nodes          map[string]*Node
+	Change         string
 }
 
-func NewNode(service *service.DockerService) *Node {
+func NewNode(s service.Service) *Node {
 	n := new(Node)
-	n.Service = service
-	n.Change = service.Id()
+	n.ServiceManager = service.NewServiceManager(s)
+	n.Change = s.Id()
 	n.Nodes = map[string]*Node{}
 	return n
 }
 
 func (n *Node) Id() string {
-	return n.Service.Id()
+	return n.ServiceManager.Id()
 }
 
 func (n *Node) addNeighbor(nb *Node) {
 	//fmt.Printf("Adding neighbor: %#s\n", nb.Id())
 	n.Nodes[nb.Id()] = nb
+	n.ServiceManager.AddDependency(nb.ServiceManager)
 }
 
 func (n *Node) isLeaf() bool {
