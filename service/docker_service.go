@@ -7,11 +7,10 @@ import (
 
 type DockerService struct {
 	Name       string
-	Image      string
-	Command    string
-	Parameters []string
 	Uses       []DockerService
 	Check      Check
+	Config     docker.Config
+	HostConfig docker.HostConfig
 }
 
 func (s *DockerService) Id() string {
@@ -27,13 +26,19 @@ func (s *DockerService) Run() {
 	endpoint := "unix:///var/run/docker.sock"
 	client, _ := docker.NewClient(endpoint)
 
-	config := docker.Config{Image: s.Image}
-	opts := docker.CreateContainerOptions{Name: s.Id(), Config: &config}
+	opts := docker.CreateContainerOptions{Name: s.Id(), Config: &s.Config}
 	container, err := client.CreateContainer(opts)
 
 	if err != nil {
 		fmt.Println("FATAL: ", err)
 	}
 
-	client.StartContainer(container.ID, &docker.HostConfig{PublishAllPorts: true})
+	client.StartContainer(container.ID, &s.HostConfig)
+	bla, err := client.InspectContainer(container.ID)
+
+	if err != nil {
+		fmt.Println("FATAL: ", err)
+	}
+
+	fmt.Println("CONTAINER", bla)
 }

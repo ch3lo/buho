@@ -6,6 +6,8 @@ import (
 )
 
 type TcpMonitor struct {
+	Ip       string
+	Port     string
 	Endpoint string
 	Expect   string
 }
@@ -19,6 +21,22 @@ func (tcp *TcpMonitor) Check() bool {
 	}
 
 	return true
+}
+
+func (tcp *TcpMonitor) SetIp(ip string) {
+	tcp.Ip = ip
+}
+
+func (tcp *TcpMonitor) GetIp() string {
+	return tcp.Endpoint
+}
+
+func (tcp *TcpMonitor) SetPort(port string) {
+	tcp.Port = port
+}
+
+func (tcp *TcpMonitor) GetPort() string {
+	return tcp.Port
 }
 
 func (tcp *TcpMonitor) SetEndpoint(ep string) {

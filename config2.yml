@@ -1,10 +1,10 @@
 services:
- acc: &acc
-  image: latam:acc
-  command: echo hola acc
+ - &acc
+  name: acc
+  image: nginx:latest
   check:
    mode: http
-   ping: /status
+   ping: /status_acc
    pong: ok
   parameters:
    - "-p=80"
@@ -13,27 +13,39 @@ services:
    - *db
    - *pcc
 
- pcc: &pcc
-  image: latam:pcc
-  command: echo hola pcc
+ - &pcc
+  name: pcc
+  image: nginx:latest
+  check:
+   mode: http
+   ping: /status_pcc
+   pong: ok
   parameters:
    - "-p=80"
   uses:
    - *dictionary
    - *db
 
- dic: &dictionary
-  image: latam:dic
-  command: echo hola dic
+ - &dictionary
+  name: dic
+  image: nginx:latest
+  check:
+   mode: http
+   ping: /status_dic
+   pong: ok
   parameters:
    - "-p=80"
   uses:
    - *db
    - *cache
 
- db: &db
-  image: debian:wheezy
-  command: echo hola db
+ - &db
+  name: db
+  image: nginx:latest
+  check:
+   mode: tcp
+   ping: telnet
+   pong: ok
   parameters:
    - "-p=80"
    - "--net=host"
@@ -41,9 +53,9 @@ services:
    - *cache
    - *cache
 
- cache: &cache
-  image: centos:centos6
-  command: echo hola cache
+ - &cache
+  name: cache
+  image: nginx:latest
   parameters:
    - "-p=8080"
    - "--net=bridge"

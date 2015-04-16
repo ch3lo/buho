@@ -1,13 +1,14 @@
 services:
  - &acc
   name: acc
-  image: nginx:latest
+  config:
+   Image: nginx:latest
+  hostconfig:
+   PublishAllPorts: true
   check:
    mode: http
    ping: /status_acc
    pong: ok
-  parameters:
-   - "-p=80"
   uses:
    - *dictionary
    - *db
@@ -15,48 +16,50 @@ services:
 
  - &pcc
   name: pcc
-  image: nginx:latest
+  config:
+   Image: nginx:latest
+  hostconfig:
+   PublishAllPorts: true
   check:
    mode: http
    ping: /status_pcc
    pong: ok
-  parameters:
-   - "-p=80"
   uses:
    - *dictionary
    - *db
 
  - &dictionary
   name: dic
-  image: nginx:latest
+  config:
+   Image: nginx:latest
+  hostconfig:
+   PublishAllPorts: true
   check:
    mode: http
    ping: /status_dic
    pong: ok
-  parameters:
-   - "-p=80"
   uses:
    - *db
    - *cache
 
  - &db
   name: db
-  image: nginx:latest
+  config:
+   Image: nginx:latest
+  hostconfig:
+   PublishAllPorts: true
   check:
    mode: tcp
    ping: telnet
    pong: ok
-  parameters:
-   - "-p=80"
-   - "--net=host"
   uses:
    - *cache
    - *cache
 
  - &cache
   name: cache
-  image: nginx:latest
-  parameters:
-   - "-p=8080"
-   - "--net=bridge"
+  config:
+   Image: nginx:latest
+  hostconfig:
+   PublishAllPorts: true
   uses:
