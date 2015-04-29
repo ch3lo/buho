@@ -15,21 +15,23 @@ type HttpMonitor struct {
 
 func (h *HttpMonitor) Check() bool {
 
-	var url string = "http://" + h.Ip + ":" + h.Port + h.Endpoint
+	var url string = h.Endpoint
+
+	fmt.Println("Checking HTTP: ", url)
 
 	for {
-		fmt.Println("Check HTTP: ", url)
-
 		resp, err := http.Get(url)
 
 		if err != nil {
 			fmt.Println("Error:", err)
 		} else {
-			fmt.Println("RESP", resp)
-			break
+			fmt.Println("Response from", url, "received with status", resp.Status)
+			if resp.StatusCode == 200 {
+				break
+			}
 		}
 
-		time.Sleep(1 * 1e9)
+		time.Sleep(5 * 1e9)
 	}
 
 	//defer resp.Body.Close()

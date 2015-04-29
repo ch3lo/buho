@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/ch3lo/buho/graph"
+	"github.com/ch3lo/wakeup/graph"
 	"time"
 )
 
 func serviceRunner(node *graph.Node) {
 	runNode(node)
-	fmt.Println("waiting Node ", node.Id())
+	fmt.Println("serviceRunner waiting for Node", node.Id())
 	for {
 		if node.ServiceManager.Status == "ready" {
 			return
@@ -18,9 +18,10 @@ func serviceRunner(node *graph.Node) {
 }
 
 func runNode(node *graph.Node) {
-	for id, _ := range node.Nodes {
-		node.Nodes[id].ServiceManager.Suscribe(node.ServiceManager.Channel)
-		runNode(node.Nodes[id])
+	for id, _ := range node.Neighbors {
+		fmt.Println(node.Id(), "needs", node.Neighbors[id].Id())
+		node.Neighbors[id].ServiceManager.Suscribe(node.ServiceManager.Channel)
+		runNode(node.Neighbors[id])
 	}
 	node.ServiceManager.Run()
 }

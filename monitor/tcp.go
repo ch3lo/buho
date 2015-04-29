@@ -15,7 +15,7 @@ type TcpMonitor struct {
 func (tcp *TcpMonitor) Check() bool {
 	try := 1
 	for try <= 3 {
-		fmt.Println("Check TCP: ", tcp.Endpoint)
+		fmt.Println("Checking TCP connection", tcp.Endpoint)
 		time.Sleep(1 * 1e9)
 		try++
 	}

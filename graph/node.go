@@ -1,12 +1,12 @@
 package graph
 
 import (
-	"github.com/ch3lo/buho/service"
+	"github.com/ch3lo/wakeup/service"
 )
 
 type Node struct {
 	ServiceManager *service.ServiceManager
-	Nodes          map[string]*Node
+	Neighbors      map[string]*Node
 	Change         string
 }
 
@@ -14,7 +14,7 @@ func NewNode(s service.Service) *Node {
 	n := new(Node)
 	n.ServiceManager = service.NewServiceManager(s)
 	n.Change = s.Id()
-	n.Nodes = map[string]*Node{}
+	n.Neighbors = map[string]*Node{}
 	return n
 }
 
@@ -24,12 +24,12 @@ func (n *Node) Id() string {
 
 func (n *Node) addNeighbor(nb *Node) {
 	//fmt.Printf("Adding neighbor: %#s\n", nb.Id())
-	n.Nodes[nb.Id()] = nb
+	n.Neighbors[nb.Id()] = nb
 	n.ServiceManager.AddDependency(nb.ServiceManager)
 }
 
 func (n *Node) isLeaf() bool {
-	if len(n.Nodes) > 0 {
+	if len(n.Neighbors) > 0 {
 		return false
 	}
 	return true

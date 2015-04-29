@@ -1,6 +1,6 @@
 package service
 
-type Check struct {
+type Healthy struct {
 	Mode string
 	Ping string
 	Pong string

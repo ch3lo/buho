@@ -38,13 +38,15 @@ func (g *Graph) ReverseChildrens(id string) *[]*Node {
 }
 
 func childrens(nodes *[]*Node, node *Node) {
-	for id, _ := range node.Nodes {
-		childrens(nodes, node.Nodes[id])
+	// recorre cada uno de los nodos vecinos
+	for id, _ := range node.Neighbors {
+		childrens(nodes, node.Neighbors[id])
 	}
 
 	//fmt.Printf("MSR %#v\n", pretty.Formatter(node))
 	//node.Change = node.Change + "?"
 
+	// si el nodo ya fue agregado se omite
 	for _, val := range *nodes {
 		if val == node {
 			return

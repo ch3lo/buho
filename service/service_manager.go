@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/ch3lo/buho/monitor"
+	"github.com/ch3lo/wakeup/monitor"
 )
 
 type ServiceManager struct {
@@ -19,17 +19,16 @@ func NewServiceManager(s Service) *ServiceManager {
 	sm.Status = "created"
 	sm.Service = s
 	sm.Channel = make(chan string)
-	sm.Monitor = initMonitor(s.Checker())
+	sm.Monitor = initMonitor(s.Healthy())
 
 	return sm
 }
 
-func initMonitor(checker Check) monitor.Monitor {
+func initMonitor(checker Healthy) monitor.Monitor {
 	var mon monitor.Monitor
 
-	fmt.Println("CHECK IS ", checker)
+	fmt.Println("Creating check", checker)
 	if checker.Mode == "" {
-		fmt.Println("CHECK IS NULL")
 		return nil
 	} else if checker.Mode == "tcp" {
 		mon = new(monitor.TcpMonitor)
@@ -57,11 +56,11 @@ func (s *ServiceManager) AddDependency(sm *ServiceManager) {
 
 func (s *ServiceManager) Run() {
 	if s.Status == "init" {
-		fmt.Println("Allow only one ", s.Id(), " instance")
+		fmt.Println("Allowed only one", s.Id(), "instance")
 		return
 	}
 
-	fmt.Println("Queuing ", s.Id())
+	fmt.Println("Queuing", s.Id())
 	s.Status = "init"
 
 	go s.gooo()
@@ -70,17 +69,18 @@ func (s *ServiceManager) Run() {
 func (s *ServiceManager) gooo() {
 	waitDependencies := len(s.dependencies) != 0
 
-	fmt.Println("waitDependencies ", waitDependencies)
+	//fmt.Println("waitDependencies ", waitDependencies)
 
 	for waitDependencies {
-		fmt.Println("GO RUN ", s.Id())
+		fmt.Println(s.Id(), "waiting for signal")
 		signal := <-s.Channel
 
-		fmt.Println("Signal from ", signal)
+		fmt.Println("Signal received from", signal)
 
 		waitDependencies = false
 		for id, _ := range s.dependencies {
 			if s.dependencies[id].Status != "ready" {
+				fmt.Println(s.Id(), "waiting for dependency", s.dependencies[id].Id())
 				waitDependencies = true
 			}
 		}
@@ -95,8 +95,8 @@ func (s *ServiceManager) gooo() {
 			//AGREGAR LOGICA DE VALIDACION
 			s.Status = "ready"
 
-			for id, sus := range s.Suscribers {
-				fmt.Println(" Sending ", id, " signal to ", sus)
+			for _, sus := range s.Suscribers {
+				fmt.Println("Service", s.Id(), "sending signal to", sus)
 				sus <- "READY " + s.Monitor.GetEndpoint()
 			}
 		} else {
@@ -104,8 +104,8 @@ func (s *ServiceManager) gooo() {
 		}
 	} else {
 		s.Status = "ready"
-		for id, sus := range s.Suscribers {
-			fmt.Println(" Sending ", id, " signal to ", sus)
+		for _, sus := range s.Suscribers {
+			fmt.Println("Service", s.Id(), "sending signal to", sus)
 			sus <- "READY WO CHECK"
 		}
 		fmt.Println("No checker defined")
