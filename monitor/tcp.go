@@ -1,7 +1,7 @@
 package monitor
 
 import (
-	"fmt"
+	"net"
 	"time"
 )
 
@@ -12,15 +12,26 @@ type TcpMonitor struct {
 	Expect   string
 }
 
-func (tcp *TcpMonitor) Check() bool {
+func (tcp *TcpMonitor) Check(retries int) bool {
 	try := 1
-	for try <= 3 {
-		fmt.Println("Checking TCP connection", tcp.Endpoint)
-		time.Sleep(1 * 1e9)
+
+	for retries == -1 || try <= retries {
+		log.Info("Checking TCP connection %s", tcp.Endpoint)
+		conn, err := net.Dial("tcp", tcp.Endpoint)
+
+		if err == nil {
+			conn.Close()
+			return true
+		} else {
+			log.Warning("%s", err)
+		}
+
+		log.Warning("%s", err)
 		try++
+		time.Sleep(2 * 1e9)
 	}
 
-	return true
+	return false
 }
 
 func (tcp *TcpMonitor) SetIp(ip string) {

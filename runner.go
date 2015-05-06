@@ -1,27 +1,27 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ch3lo/wakeup/graph"
+	"github.com/ch3lo/wakeup/service"
 	"time"
 )
 
 func serviceRunner(node *graph.Node) {
-	runNode(node)
-	fmt.Println("serviceRunner waiting for Node", node.Id())
+	runChildrensFirst(node)
+	log.Info("serviceRunner waiting for Node %s", node.Id())
 	for {
-		if node.ServiceManager.Status == "ready" {
+		if node.ServiceManager.Status == service.READY {
 			return
 		}
 		time.Sleep(1 * time.Second)
 	}
 }
 
-func runNode(node *graph.Node) {
+func runChildrensFirst(node *graph.Node) {
 	for id, _ := range node.Neighbors {
-		fmt.Println(node.Id(), "needs", node.Neighbors[id].Id())
+		log.Info("%s needs %s", node.Id(), node.Neighbors[id].Id())
 		node.Neighbors[id].ServiceManager.Suscribe(node.ServiceManager.Channel)
-		runNode(node.Neighbors[id])
+		runChildrensFirst(node.Neighbors[id])
 	}
 	node.ServiceManager.Run()
 }

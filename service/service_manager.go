@@ -1,12 +1,29 @@
 package service
 
 import (
-	"fmt"
 	"github.com/ch3lo/wakeup/monitor"
 )
 
+type Status int
+
+const (
+	CREATED Status = iota
+	INIT
+	READY
+)
+
+var statusList = []string{
+	"CREATED",
+	"INIT",
+	"READY",
+}
+
+func (p Status) String() string {
+	return statusList[p]
+}
+
 type ServiceManager struct {
-	Status       string
+	Status       Status
 	Service      Service
 	Channel      chan string
 	Suscribers   []chan string
@@ -16,18 +33,18 @@ type ServiceManager struct {
 
 func NewServiceManager(s Service) *ServiceManager {
 	sm := new(ServiceManager)
-	sm.Status = "created"
+	sm.Status = CREATED
 	sm.Service = s
 	sm.Channel = make(chan string)
-	sm.Monitor = initMonitor(s.Healthy())
+	sm.Monitor = sm.initMonitor(s.Healthy())
 
 	return sm
 }
 
-func initMonitor(checker Healthy) monitor.Monitor {
+func (s *ServiceManager) initMonitor(checker Healthy) monitor.Monitor {
 	var mon monitor.Monitor
 
-	fmt.Println("Creating check", checker)
+	log.Debug("%s has checker %s", s.Id(), checker)
 	if checker.Mode == "" {
 		return nil
 	} else if checker.Mode == "tcp" {
@@ -55,13 +72,13 @@ func (s *ServiceManager) AddDependency(sm *ServiceManager) {
 }
 
 func (s *ServiceManager) Run() {
-	if s.Status == "init" {
-		fmt.Println("Allowed only one", s.Id(), "instance")
+	if s.Status == INIT {
+		log.Info("Allowed only one %s instance", s.Id())
 		return
 	}
 
-	fmt.Println("Queuing", s.Id())
-	s.Status = "init"
+	log.Info("Queuing %s", s.Id())
+	s.Status = INIT
 
 	go s.gooo()
 }
@@ -69,45 +86,56 @@ func (s *ServiceManager) Run() {
 func (s *ServiceManager) gooo() {
 	waitDependencies := len(s.dependencies) != 0
 
-	//fmt.Println("waitDependencies ", waitDependencies)
-
 	for waitDependencies {
-		fmt.Println(s.Id(), "waiting for signal")
+		log.Info("%s waiting for signal", s.Id())
 		signal := <-s.Channel
 
-		fmt.Println("Signal received from", signal)
+		log.Info("%s has signal received from %s", s.Id(), signal)
 
 		waitDependencies = false
 		for id, _ := range s.dependencies {
-			if s.dependencies[id].Status != "ready" {
-				fmt.Println(s.Id(), "waiting for dependency", s.dependencies[id].Id())
+			if s.dependencies[id].Status != READY {
+				log.Info("%s waiting for dependency %s", s.Id(), s.dependencies[id].Id())
 				waitDependencies = true
 			}
 		}
 	}
 
-	s.Service.Run()
+	log.Info("%s dependencies ready", s.Id())
 
+	if s.check(3) == false {
+		s.Service.Run()
+	}
+
+	s.check(-1)
+}
+
+func (s *ServiceManager) check(retries int) bool {
 	if s.Monitor != nil {
-		status := s.Monitor.Check()
+		status := s.Monitor.Check(retries)
 
 		if status {
 			//AGREGAR LOGICA DE VALIDACION
-			s.Status = "ready"
+			s.Status = READY
 
 			for _, sus := range s.Suscribers {
-				fmt.Println("Service", s.Id(), "sending signal to", sus)
-				sus <- "READY " + s.Monitor.GetEndpoint()
+				log.Info("%s service sending signal to %s", s.Id(), sus)
+				sus <- "READY " + s.Id()
 			}
-		} else {
-			fmt.Println("CHECK FAILED")
+			return true
 		}
-	} else {
-		s.Status = "ready"
-		for _, sus := range s.Suscribers {
-			fmt.Println("Service", s.Id(), "sending signal to", sus)
-			sus <- "READY WO CHECK"
-		}
-		fmt.Println("No checker defined")
+
+		log.Info("%s check failed", s.Id())
+		return false
 	}
+
+	log.Info("has not checker defined", s.Id())
+
+	return false
+	//		s.Status = "ready"
+
+	//		for _, sus := range s.Suscribers {
+	//			fmt.Println("Service", s.Id(), "sending signal to", sus)
+	//			sus <- "READY WO CHECK"
+	//		}
 }

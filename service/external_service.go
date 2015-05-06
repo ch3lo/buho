@@ -1,12 +1,8 @@
 package service
 
-import (
-	"fmt"
-)
-
 type ExternalService struct {
 	Name         string  `json:"name" yaml:"name"`
-	HealthyCheck Healthy `json:"check" yaml:"check"`
+	HealthyCheck Healthy `json:"healthy" yaml:"healthy"`
 }
 
 func (s *ExternalService) Id() string {
@@ -17,6 +13,10 @@ func (s *ExternalService) Healthy() Healthy {
 	return s.HealthyCheck
 }
 
+func (s *ExternalService) Type() ServiceType {
+	return EXTERNAL
+}
+
 func (s *ExternalService) Run() {
-	fmt.Println("Nada que correr en", s.Id())
+	log.Debug("Nada que correr en %s", s.Id())
 }

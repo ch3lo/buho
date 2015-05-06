@@ -1,9 +1,11 @@
 package graph
 
 import (
-	"fmt"
 	"github.com/kr/pretty"
+	"github.com/op/go-logging"
 )
+
+var log = logging.MustGetLogger("main")
 
 type Graph struct {
 	Nodes map[string]*Node
@@ -16,7 +18,7 @@ func NewGraph() *Graph {
 }
 
 func (g *Graph) AddNode(node *Node) {
-	fmt.Printf("Adding node %#s - %#v - %#v\n", node.Id(), &node, pretty.Formatter(node))
+	log.Debug("Adding node %s - %#v", node.Id(), pretty.Formatter(node))
 	g.Nodes[node.Id()] = node
 }
 
@@ -25,7 +27,6 @@ func (g *Graph) GetNode(id string) *Node {
 }
 
 func (g *Graph) AddEdge(from *Node, to *Node) {
-	//fmt.Printf("Adding edge from %#v to %#v\n", from.Id(), to.Id())
 	from.addNeighbor(to)
 }
 
@@ -43,7 +44,7 @@ func childrens(nodes *[]*Node, node *Node) {
 		childrens(nodes, node.Neighbors[id])
 	}
 
-	//fmt.Printf("MSR %#v\n", pretty.Formatter(node))
+	//log.Debug("MSR %#v\n", pretty.Formatter(node))
 	//node.Change = node.Change + "?"
 
 	// si el nodo ya fue agregado se omite
@@ -54,5 +55,5 @@ func childrens(nodes *[]*Node, node *Node) {
 	}
 
 	*nodes = append(*nodes, node)
-	//fmt.Printf("MSR NODES %#v\n", nodes)
+	//log.Debug("MSR NODES %#v\n", nodes)
 }

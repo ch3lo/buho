@@ -23,7 +23,6 @@ func (n *Node) Id() string {
 }
 
 func (n *Node) addNeighbor(nb *Node) {
-	//fmt.Printf("Adding neighbor: %#s\n", nb.Id())
 	n.Neighbors[nb.Id()] = nb
 	n.ServiceManager.AddDependency(nb.ServiceManager)
 }

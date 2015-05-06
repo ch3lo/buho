@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -13,31 +12,34 @@ type HttpMonitor struct {
 	Expect   string
 }
 
-func (h *HttpMonitor) Check() bool {
+func (h *HttpMonitor) Check(retries int) bool {
 
 	var url string = h.Endpoint
 
-	fmt.Println("Checking HTTP: ", url)
+	log.Info("Checking HTTP connection %s", url)
 
-	for {
+	try := 1
+	for retries == -1 || try <= retries {
 		resp, err := http.Get(url)
 
-		if err != nil {
-			fmt.Println("Error:", err)
-		} else {
-			fmt.Println("Response from", url, "received with status", resp.Status)
+		if err == nil {
+			log.Info("Response from %s received with status %s", url, resp.StatusCode)
+
 			if resp.StatusCode == 200 {
-				break
+				return true
 			}
+		} else {
+			log.Warning("%s", err)
 		}
 
-		time.Sleep(5 * 1e9)
+		try++
+		time.Sleep(2 * 1e9)
 	}
 
 	//defer resp.Body.Close()
 	//body, err := ioutil.ReadAll(resp.Body)
 
-	return true
+	return false
 }
 
 func (http *HttpMonitor) SetIp(ip string) {
