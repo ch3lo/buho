@@ -26,7 +26,7 @@ func (tcp *TcpMonitor) Check(retries int) bool {
 		}
 
 		try++
-		time.Sleep(2 * 1e9)
+		time.Sleep(time.Duration(config.CheckInterval) * 1e9)
 	}
 
 	return false

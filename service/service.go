@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/ch3lo/wakeup/util"
 	"github.com/op/go-logging"
 )
 
@@ -11,6 +12,12 @@ type Service interface {
 	Run()
 }
 
+type Healthy struct {
+	Mode string
+	Ping string
+	Pong string
+}
+
 type ServiceType int
 
 const (
@@ -18,4 +25,5 @@ const (
 	DOCKER
 )
 
+var config = util.GetConfiguration()
 var log = logging.MustGetLogger("main")

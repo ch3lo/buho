@@ -2,14 +2,11 @@ package service
 
 import (
 	"bufio"
-	"github.com/ch3lo/wakeup/util"
 	"github.com/fsouza/go-dockerclient"
 	"os"
 	"path"
 	"strings"
 )
-
-var config = util.GetConfiguration()
 
 type DockerService struct {
 	Name         string            `json:"name" yaml:"name"`

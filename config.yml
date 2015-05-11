@@ -1,65 +1,95 @@
-services:
+docker_services:
  - &acc
   name: acc
+  envfiles:
+   - dev.env
   config:
-   Image: nginx:latest
+   Image: registry.it.lan.com/latam/ws_application_common_configuration_1.0:latest
   hostconfig:
-   PublishAllPorts: true
-  check:
+   ExtraHosts:
+    - "local.services.pool.lan.com:172.17.42.1"
+   PortBindings:
+    "8080/tcp":
+     - HostPort: 20010
+  healthy:
    mode: http
-   ping: /status_acc
-   pong: ok
+   ping: http://local.services.pool.lan.com:15000/ws/application/common/configuration/1.0/healthy.html
+   pong: OK
   uses:
    - *dictionary
-   - *db
    - *pcc
+   - *haproxy
+  externals:
+   - *db
 
  - &pcc
   name: pcc
+  envfiles:
+   - dev.env
   config:
-   Image: nginx:latest
+   Image: registry.it.lan.com/latam/ws_purchase_common_configuration_1.0:latest
   hostconfig:
-   PublishAllPorts: true
-  check:
+   ExtraHosts:
+    - "local.services.pool.lan.com:172.17.42.1"
+   PortBindings:
+    "8080/tcp":
+     - HostPort: 20020
+  healthy:
    mode: http
-   ping: /status_pcc
-   pong: ok
+   ping: http://local.services.pool.lan.com:15000/ws/purchase/common/configuration/1.0/healthy.html
+   pong: OK
   uses:
+   - *haproxy
    - *dictionary
+  externals:
    - *db
 
  - &dictionary
   name: dic
+  envfiles:
+   - dev.env
   config:
-   Image: nginx:latest
+   Image: registry.it.lan.com/latam/ws_application_common_dictionary_1.2:latest
   hostconfig:
-   PublishAllPorts: true
-  check:
+   ExtraHosts:
+    - "local.services.pool.lan.com:172.17.42.1"
+   PortBindings:
+    "8080/tcp":
+     - HostPort: 20000
+  healthy:
    mode: http
-   ping: /status_dic
-   pong: ok
+   ping: http://local.services.pool.lan.com:15000/ws/application/common/dictionary/1.2/healthy.html
+   pong: OK
   uses:
+   - *haproxy
+  externals:
    - *db
-   - *cache
 
+ - &haproxy
+  name: haproxy
+  config:
+   Image: registry.it.lan.com/latam/static_ha:latest
+  hostconfig:
+   NetworkMode: host
+  healthy:
+   mode: http
+   ping: http://local.services.pool.lan.com:4280/status
+   pong: "HAProxy version"
+
+external_services:
  - &db
   name: db
-  config:
-   Image: nginx:latest
-  hostconfig:
-   PublishAllPorts: true
-  check:
+  healthy:
    mode: tcp
-   ping: telnet
+   ping: local.services.pool.lan.com:3310
    pong: ok
-  uses:
+  externals:
    - *cache
    - *cache
 
  - &cache
   name: cache
-  config:
-   Image: nginx:latest
-  hostconfig:
-   PublishAllPorts: true
-  uses:
+  healthy:
+   mode: tcp
+   ping: local.services.pool.lan.com:3311
+   pong: ok

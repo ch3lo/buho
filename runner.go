@@ -12,7 +12,7 @@ func runNode(node *graph.Node) {
 	log.Info("runNode waiting for Node %s", node.Id())
 
 	for {
-		if node.ServiceManager.Status == service.READY {
+		if node.ServiceManager.Status == service.READY || node.ServiceManager.Status == service.FAILED {
 			return
 		}
 

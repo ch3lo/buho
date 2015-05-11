@@ -9,15 +9,15 @@ type Status int
 const (
 	CREATED Status = iota
 	FAILED
-	INIT
+	ENQUEUED
 	READY
 )
 
 type ServiceManager struct {
 	Status       Status
 	Service      Service
-	Channel      chan string
-	Suscribers   []chan string
+	Channel      chan bool
+	Suscribers   []chan bool
 	Monitor      monitor.Monitor
 	dependencies []*ServiceManager
 }
@@ -26,7 +26,7 @@ func NewServiceManager(s Service) *ServiceManager {
 	sm := new(ServiceManager)
 	sm.Status = CREATED
 	sm.Service = s
-	sm.Channel = make(chan string)
+	sm.Channel = make(chan bool)
 	sm.Monitor = sm.createMonitor(s.Healthy())
 
 	return sm
@@ -54,7 +54,7 @@ func (s *ServiceManager) Id() string {
 	return s.Service.Id()
 }
 
-func (s *ServiceManager) Suscribe(cs chan string) {
+func (s *ServiceManager) Suscribe(cs chan bool) {
 	s.Suscribers = append(s.Suscribers, cs)
 }
 
@@ -63,42 +63,42 @@ func (s *ServiceManager) AddDependency(sm *ServiceManager) {
 }
 
 func (s *ServiceManager) EnqueueService() {
-	if s.Status == INIT {
+	if s.Status == ENQUEUED {
 		log.Info("Allowed only one %s instance", s.Id())
 		return
 	}
 
 	log.Info("Queuing %s", s.Id())
-	s.Status = INIT
+	s.Status = ENQUEUED
 
 	go s.run()
 }
 
 func (s *ServiceManager) run() {
-	waitDependencies := len(s.dependencies) != 0
+	waitingDependencies := len(s.dependencies) != 0
 
-	for waitDependencies {
+	for waitingDependencies {
 		log.Info("%s waiting for signal", s.Id())
 		signal := <-s.Channel
 
 		log.Info("%s has signal received from %s", s.Id(), signal)
 
-		waitDependencies = false
+		waitingDependencies = false
 		for id, _ := range s.dependencies {
-			if s.dependencies[id].Status != READY {
-				log.Info("%s waiting for dependency %s", s.Id(), s.dependencies[id].Id())
-				waitDependencies = true
+			if s.dependencies[id].Status != READY && s.dependencies[id].Status != FAILED {
+				log.Info("%s waiting for dependency %s ins status %s", s.Id(), s.dependencies[id].Id(), s.dependencies[id].Status)
+				waitingDependencies = true
 			}
 		}
 	}
 
 	log.Info("%s dependencies ready", s.Id())
 
-	if s.check(3) == false {
+	if s.check(config.PreCheckRetries) == false {
 		s.Service.Run()
 	}
 
-	s.notify(s.check(-1))
+	s.notify(s.check(config.Checks))
 }
 
 func (s *ServiceManager) check(retries int) bool {
@@ -122,15 +122,8 @@ func (s *ServiceManager) check(retries int) bool {
 }
 
 func (s *ServiceManager) notify(status bool) {
-
-	statusName := "FAILED"
-
-	if status {
-		statusName = "READY"
-	}
-
 	for _, sus := range s.Suscribers {
 		log.Info("%s service sending signal to %s", s.Id(), sus)
-		sus <- statusName
+		sus <- status
 	}
 }
