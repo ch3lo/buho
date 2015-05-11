@@ -1,75 +1,60 @@
 package monitor
 
 import (
+	"io/ioutil"
 	"net/http"
+	"regexp"
 	"time"
 )
 
 type HttpMonitor struct {
-	Ip       string
-	Port     string
 	Endpoint string
 	Expect   string
 }
 
 func (h *HttpMonitor) Check(retries int) bool {
+	log.Info("Checking HTTP connection %s", h.Endpoint)
 
-	var url string = h.Endpoint
-
-	log.Info("Checking HTTP connection %s", url)
+	r, _ := regexp.Compile(h.Expect)
 
 	try := 1
 	for retries == -1 || try <= retries {
-		resp, err := http.Get(url)
+		resp, err := http.Get(h.Endpoint)
 
 		if err == nil {
-			log.Info("Response from %s received with status %s", url, resp.StatusCode)
+			log.Debug("Response from %s received with status %s", h.Endpoint, resp.StatusCode)
 
 			if resp.StatusCode == 200 {
-				return true
+				log.Info("Checking response from %s ...", h.Endpoint)
+				result := false
+
+				body, _ := ioutil.ReadAll(resp.Body)
+
+				if r.MatchString(string(body)) {
+					log.Info("Response from %s ... OK", h.Endpoint)
+					result = true
+				} else {
+					log.Warning("Response from %s ... FAILED with content %s", h.Endpoint, string(body))
+				}
+
+				resp.Body.Close()
+				return result
 			}
 		} else {
-			log.Warning("%s", err)
+			log.Debug("%s", err)
 		}
 
 		try++
 		time.Sleep(2 * 1e9)
 	}
 
-	//defer resp.Body.Close()
-	//body, err := ioutil.ReadAll(resp.Body)
-
 	return false
-}
-
-func (http *HttpMonitor) SetIp(ip string) {
-	http.Ip = ip
-}
-
-func (http *HttpMonitor) GetIp() string {
-	return http.Endpoint
-}
-
-func (http *HttpMonitor) SetPort(port string) {
-	http.Port = port
-}
-
-func (http *HttpMonitor) GetPort() string {
-	return http.Port
 }
 
 func (http *HttpMonitor) SetEndpoint(ep string) {
 	http.Endpoint = ep
 }
 
-func (http *HttpMonitor) GetEndpoint() string {
-	return http.Endpoint
-}
-
 func (http *HttpMonitor) SetExpect(ex string) {
 	http.Expect = ex
-}
-
-func (http *HttpMonitor) GetExpect() string {
-	return http.Expect
 }

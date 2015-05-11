@@ -44,9 +44,6 @@ func childrens(nodes *[]*Node, node *Node) {
 		childrens(nodes, node.Neighbors[id])
 	}
 
-	//log.Debug("MSR %#v\n", pretty.Formatter(node))
-	//node.Change = node.Change + "?"
-
 	// si el nodo ya fue agregado se omite
 	for _, val := range *nodes {
 		if val == node {
@@ -55,5 +52,4 @@ func childrens(nodes *[]*Node, node *Node) {
 	}
 
 	*nodes = append(*nodes, node)
-	//log.Debug("MSR NODES %#v\n", nodes)
 }

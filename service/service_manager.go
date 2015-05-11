@@ -8,19 +8,10 @@ type Status int
 
 const (
 	CREATED Status = iota
+	FAILED
 	INIT
 	READY
 )
-
-var statusList = []string{
-	"CREATED",
-	"INIT",
-	"READY",
-}
-
-func (p Status) String() string {
-	return statusList[p]
-}
 
 type ServiceManager struct {
 	Status       Status
@@ -36,15 +27,15 @@ func NewServiceManager(s Service) *ServiceManager {
 	sm.Status = CREATED
 	sm.Service = s
 	sm.Channel = make(chan string)
-	sm.Monitor = sm.initMonitor(s.Healthy())
+	sm.Monitor = sm.createMonitor(s.Healthy())
 
 	return sm
 }
 
-func (s *ServiceManager) initMonitor(checker Healthy) monitor.Monitor {
+func (s *ServiceManager) createMonitor(checker Healthy) monitor.Monitor {
 	var mon monitor.Monitor
 
-	log.Debug("%s has checker %s", s.Id(), checker)
+	log.Info("Creating monitor for %s with: mode=%s and ping=%s", s.Id(), checker.Mode, checker.Ping)
 	if checker.Mode == "" {
 		return nil
 	} else if checker.Mode == "tcp" {
@@ -71,7 +62,7 @@ func (s *ServiceManager) AddDependency(sm *ServiceManager) {
 	s.dependencies = append(s.dependencies, sm)
 }
 
-func (s *ServiceManager) Run() {
+func (s *ServiceManager) EnqueueService() {
 	if s.Status == INIT {
 		log.Info("Allowed only one %s instance", s.Id())
 		return
@@ -80,10 +71,10 @@ func (s *ServiceManager) Run() {
 	log.Info("Queuing %s", s.Id())
 	s.Status = INIT
 
-	go s.gooo()
+	go s.run()
 }
 
-func (s *ServiceManager) gooo() {
+func (s *ServiceManager) run() {
 	waitDependencies := len(s.dependencies) != 0
 
 	for waitDependencies {
@@ -107,7 +98,7 @@ func (s *ServiceManager) gooo() {
 		s.Service.Run()
 	}
 
-	s.check(-1)
+	s.notify(s.check(-1))
 }
 
 func (s *ServiceManager) check(retries int) bool {
@@ -115,27 +106,31 @@ func (s *ServiceManager) check(retries int) bool {
 		status := s.Monitor.Check(retries)
 
 		if status {
-			//AGREGAR LOGICA DE VALIDACION
 			s.Status = READY
 
-			for _, sus := range s.Suscribers {
-				log.Info("%s service sending signal to %s", s.Id(), sus)
-				sus <- "READY " + s.Id()
-			}
 			return true
 		}
 
 		log.Info("%s check failed", s.Id())
+
 		return false
 	}
 
-	log.Info("has not checker defined", s.Id())
+	log.Info("%s has not checker defined", s.Id())
 
 	return false
-	//		s.Status = "ready"
+}
 
-	//		for _, sus := range s.Suscribers {
-	//			fmt.Println("Service", s.Id(), "sending signal to", sus)
-	//			sus <- "READY WO CHECK"
-	//		}
+func (s *ServiceManager) notify(status bool) {
+
+	statusName := "FAILED"
+
+	if status {
+		statusName = "READY"
+	}
+
+	for _, sus := range s.Suscribers {
+		log.Info("%s service sending signal to %s", s.Id(), sus)
+		sus <- statusName
+	}
 }

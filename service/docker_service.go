@@ -2,11 +2,14 @@ package service
 
 import (
 	"bufio"
+	"github.com/ch3lo/wakeup/util"
 	"github.com/fsouza/go-dockerclient"
 	"os"
 	"path"
 	"strings"
 )
+
+var config = util.GetConfiguration()
 
 type DockerService struct {
 	Name         string            `json:"name" yaml:"name"`
@@ -31,9 +34,7 @@ func (s *DockerService) Type() ServiceType {
 }
 
 func (s *DockerService) Run() {
-	//SACAR DE ACA
-	endpoint := "unix:///var/run/docker.sock"
-	client, _ := docker.NewClient(endpoint)
+	client, _ := docker.NewClient(config.DockerApi)
 
 	s.Config.Env = s.parseEnvFiles()
 

@@ -6,22 +6,27 @@ import (
 	"time"
 )
 
-func serviceRunner(node *graph.Node) {
-	runChildrensFirst(node)
-	log.Info("serviceRunner waiting for Node %s", node.Id())
+func runNode(node *graph.Node) {
+	runChildrens(node)
+
+	log.Info("runNode waiting for Node %s", node.Id())
+
 	for {
 		if node.ServiceManager.Status == service.READY {
 			return
 		}
+
 		time.Sleep(1 * time.Second)
 	}
 }
 
-func runChildrensFirst(node *graph.Node) {
+func runChildrens(node *graph.Node) {
 	for id, _ := range node.Neighbors {
 		log.Info("%s needs %s", node.Id(), node.Neighbors[id].Id())
+
 		node.Neighbors[id].ServiceManager.Suscribe(node.ServiceManager.Channel)
-		runChildrensFirst(node.Neighbors[id])
+		runChildrens(node.Neighbors[id])
 	}
-	node.ServiceManager.Run()
+
+	node.ServiceManager.EnqueueService()
 }
