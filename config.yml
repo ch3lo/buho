@@ -4,16 +4,16 @@ docker_services:
   envfiles:
    - dev.env
   config:
-   Image: registry.it.lan.com/latam/ws_application_common_configuration_1.0:latest
+   Image: registry/ws_application_common_configuration_1.0:latest
   hostconfig:
    ExtraHosts:
-    - "local.services.pool.lan.com:172.17.42.1"
+    - "docker0:172.17.42.1"
    PortBindings:
     "8080/tcp":
      - HostPort: 20010
   healthy:
    mode: http
-   ping: http://local.services.pool.lan.com:15000/ws/application/common/configuration/1.0/healthy.html
+   ping: http://docker0:15000/ws/application/common/configuration/1.0/healthy.html
    pong: OK
   uses:
    - *dictionary
@@ -27,16 +27,16 @@ docker_services:
   envfiles:
    - dev.env
   config:
-   Image: registry.it.lan.com/latam/ws_purchase_common_configuration_1.0:latest
+   Image: registry/ws_purchase_common_configuration_1.0:latest
   hostconfig:
    ExtraHosts:
-    - "local.services.pool.lan.com:172.17.42.1"
+    - "docker0:172.17.42.1"
    PortBindings:
     "8080/tcp":
      - HostPort: 20020
   healthy:
    mode: http
-   ping: http://local.services.pool.lan.com:15000/ws/purchase/common/configuration/1.0/healthy.html
+   ping: http://docker0:15000/ws/purchase/common/configuration/1.0/healthy.html
    pong: OK
   uses:
    - *haproxy
@@ -49,16 +49,16 @@ docker_services:
   envfiles:
    - dev.env
   config:
-   Image: registry.it.lan.com/latam/ws_application_common_dictionary_1.2:latest
+   Image: registry/ws_application_common_dictionary_1.2:latest
   hostconfig:
    ExtraHosts:
-    - "local.services.pool.lan.com:172.17.42.1"
+    - "docker0:172.17.42.1"
    PortBindings:
     "8080/tcp":
      - HostPort: 20000
   healthy:
    mode: http
-   ping: http://local.services.pool.lan.com:15000/ws/application/common/dictionary/1.2/healthy.html
+   ping: http://docker0:15000/ws/application/common/dictionary/1.2/healthy.html
    pong: OK
   uses:
    - *haproxy
@@ -68,12 +68,12 @@ docker_services:
  - &haproxy
   name: haproxy
   config:
-   Image: registry.it.lan.com/latam/static_ha:latest
+   Image: registry/static_ha:latest
   hostconfig:
    NetworkMode: host
   healthy:
    mode: http
-   ping: http://local.services.pool.lan.com:4280/status
+   ping: http://localhost:4280/status
    pong: "HAProxy version"
 
 external_services:
@@ -81,7 +81,7 @@ external_services:
   name: db
   healthy:
    mode: tcp
-   ping: local.services.pool.lan.com:3310
+   ping: docker0:3310
    pong: ok
   externals:
    - *cache
@@ -91,5 +91,5 @@ external_services:
   name: cache
   healthy:
    mode: tcp
-   ping: local.services.pool.lan.com:3311
+   ping: docker0:3311
    pong: ok
